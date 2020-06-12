@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(MyApp());
@@ -25,6 +26,9 @@ class MyApp extends StatelessWidget {
         // the app on. For desktop platforms, the controls will be smaller and
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        textTheme: GoogleFonts.quicksandTextTheme(
+          Theme.of(context).textTheme,
+        ),
       ),
       home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
