@@ -1,0 +1,52 @@
+# https://resocoder.com/2020/02/19/environments-flavors-in-flutter-with-codemagic-ci-cd/
+# https://docs.codemagic.io/building/environment-variables/
+
+workflows:
+  default-workflow:
+    name: Default Workflow
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      APP_CONFIG: Encrypted(Z0FBQUFBQmU0eklZYml0eUNlbFFUd3N5dnAtQU5uc3pQT3JySllRU3VlYjlMc3NDMXNFRkdxRFRjU0JuLTdveXU4cllUNmkyWTBkSTVvVEl0YmlUaFpxRU44czZMSjFCeE1jeFFMMUpQbDFYY0YwWklmRFBNOVQ0ZWFDQV84b0Njb1FXZkZjX0NwcXYxVW9HamUxNmJXQVhwRHBFRm00bTBsUmRKdkVfSkE0WFJZVVZCZVZndHY1NDN4V2FsTXNNYzQwX1preG5tNzY2RlZZZjhPd3g1LURHVjlsQmp5SC12ekFtX1hyUVR5YkFCdkI4UkVmYzFneUxCd2tObEhfT1FURUR2d1RoaEFYVWJDampNWk0wQlBvanYtSXhWUTd4cDJwR2ZMamFMZ2IxQUVYTG8tUG04cVk9)
+    scripts:
+      - mkdir -p $FCI_BUILD_DIR/config
+      - echo $APP_CONFIG | base64 --decode > $FCI_BUILD_DIR/config/app_config.json
+      - |
+        # set up debug keystore
+        rm -f ~/.android/debug.keystore
+        keytool -genkeypair \
+          -alias androiddebugkey \
+          -keypass android \
+          -keystore ~/.android/debug.keystore \
+          -storepass android \
+          -dname 'CN=Android Debug,O=Android,C=US' \
+          -keyalg 'RSA' \
+          -keysize 2048 \
+          -validity 10000
+      - |
+        # set up local properties
+        echo "flutter.sdk=$HOME/programs/flutter" > "$FCI_BUILD_DIR/android/local.properties"
+      - flutter packages pub get
+      - flutter config --enable-web
+      - flutter build apk --debug
+      - find . -name "Podfile" -execdir pod install \;
+      - flutter build ios --debug --no-codesign
+      - |
+        # build web
+        flutter build web --release
+        cd build/web
+        7z a -r ../web.zip ./*
+    artifacts:
+      - build/**/outputs/**/*.apk
+      - build/**/outputs/**/*.aab
+      - build/**/outputs/**/mapping.txt
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - build/web.zip
+      - flutter_drive.log
+    publishing:
+      email:
+        recipients:
+          - longphu0001@gmail.com
