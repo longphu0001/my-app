@@ -6,13 +6,15 @@ addons:
     packages:
       - lib32stdc++6
 install:
+  - echo 'Avoid default Travis CI install step' # this is to avoid an error with pub in Travis
+before_script:
   - git clone https://github.com/flutter/flutter.git -b stable
   - export PATH=`pwd`/flutter/bin:`pwd`/flutter/bin/cache/dart-sdk/bin:$PATH
-  - ./flutter/bin/flutter doctor
+  - flutter doctor
   - flutter config --enable-web
   - gem install coveralls-lcov
 script:
-  - ./flutter/bin/flutter test --coverage
+  - flutter test --coverage
   - flutter build web
 after_success:
   - coveralls-lcov coverage/lcov.info
